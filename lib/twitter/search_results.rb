@@ -27,23 +27,25 @@ module Twitter
     end
 
   private
+    def next_page?
+      !!@attrs[:next]
+    end
+
+    def next_page
+      { next: @attrs[:next] } if next_page?
+    end
+
+    def attrs=(attrs)
+      @attrs = attrs
+      @attrs.fetch(:results, []).collect do |tweet|
+        @collection << Tweet.new(tweet)
+      end
+      @attrs
+    end
 
     # @return [Boolean]
     def last?
       !next_page?
-    end
-
-    # @return [Boolean]
-    def next_page?
-      !!@attrs[:search_metadata][:next_results] unless @attrs[:search_metadata].nil?
-    end
-
-    # Returns a Hash of query parameters for the next result in the search
-    #
-    # @note Returned Hash can be merged into the previous search options list to easily access the next page.
-    # @return [Hash] The parameters needed to fetch the next page.
-    def next_page
-      query_string_to_hash(@attrs[:search_metadata][:next_results]) if next_page?
     end
 
     # @return [Hash]
@@ -51,16 +53,6 @@ module Twitter
       response = Twitter::REST::Request.new(@client, @request_method, @path, @options.merge(next_page))
       self.attrs = response.perform
       @rate_limit = response.rate_limit
-    end
-
-    # @param attrs [Hash]
-    # @return [Hash]
-    def attrs=(attrs)
-      @attrs = attrs
-      @attrs.fetch(:statuses, []).collect do |tweet|
-        @collection << Tweet.new(tweet)
-      end
-      @attrs
     end
 
     # Converts query string to a hash

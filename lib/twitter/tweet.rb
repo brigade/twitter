@@ -9,7 +9,7 @@ module Twitter
     # @return [String]
     attr_reader :filter_level, :in_reply_to_screen_name, :lang, :source, :text
     # @return [Integer]
-    attr_reader :favorite_count, :in_reply_to_status_id, :in_reply_to_user_id,
+    attr_reader :expanded_url, :favorite_count, :in_reply_to_status_id, :in_reply_to_user_id,
                 :quote_count, :reply_count, :retweet_count
     alias in_reply_to_tweet_id in_reply_to_status_id
     alias reply? in_reply_to_user_id?
@@ -28,6 +28,15 @@ module Twitter
     object_attr_reader :User, :user, :status
     predicate_attr_reader :favorited, :possibly_sensitive, :retweeted,
                           :truncated
+
+    def initialize(attrs = {})
+      urls = attrs.dig(:extended_tweet, :entities, :urls)
+      if !urls
+        urls = attrs.dig(:entities, :urls)
+      end
+      attrs[:expanded_url] = urls&.first&.[](:expanded_url)
+      super
+    end
 
     # @note May be > 280 characters.
     # @return [String]

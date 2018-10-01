@@ -74,6 +74,28 @@ describe Twitter::Tweet do
     end
   end
 
+  describe '#expanded_url' do
+    let(:urls_array) {[
+        {
+          url: 'https://t.co/L2xIBazMPf',
+          expanded_url: 'http://example.com/expanded',
+          display_url: 'example.com/expanded...',
+          indices: [10, 33],
+        },
+      ]}
+    it 'returns the expanded url' do
+      tweet = Twitter::Tweet.new(id: 28_669_546_014, entities: {urls: urls_array})
+      expect(tweet.expanded_url).to eq(urls_array.first[:expanded_url])
+    end
+
+    context 'when the tweet is an extended tweet' do
+      it 'returns the expanded_url' do
+        tweet = Twitter::Tweet.new(id: 28_669_546_014, extended_tweet: {entities: {urls: urls_array}})
+        expect(tweet.expanded_url).to eq(urls_array.first[:expanded_url])
+      end
+    end
+  end
+
   describe '#filter_level' do
     it 'returns the filter level when filter_level is set' do
       tweet = Twitter::Tweet.new(id: 28_669_546_014, filter_level: 'high')
